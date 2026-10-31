@@ -175,8 +175,12 @@ fn category_items(ui: &mut Ui, state: &mut AppState, category: ViewCategory) {
         let active = state.active_view == Some(id);
         let r = tree_row(ui, 1, None, i + 1 == n, category_icon(category), &label, None, active);
 
-        if r.clicked() {
+        let ctrl = ui.input(|i| i.modifiers.command);
+        if r.double_clicked() || (r.clicked() && ctrl) {
             state.open_view(id);
+        } else if r.clicked() {
+            state.reuse_view(id);
+            ui.ctx().request_repaint_after(crate::state::REUSE_DELAY);
         }
 
         r.context_menu(|ui| {

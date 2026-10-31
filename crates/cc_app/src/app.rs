@@ -131,6 +131,27 @@ fn active_tab(dock: &mut DockState<ViewId>) -> Option<ViewId> {
     dock.find_active_focused().map(|(_, tab)| *tab)
 }
 
+/// Show a view in the active tab; a view already open only takes the focus.
+fn reuse_tab(dock: &mut DockState<ViewId>, state: &mut AppState, id: ViewId) {
+    if state.project().view(id).is_none() {
+        return;
+    }
+    if let Some(path) = dock.find_tab(&id) {
+        let _ = dock.set_active_tab(path);
+        dock.set_focused_node_and_surface(path.node_path());
+        return;
+    }
+    if active_tab(dock).is_none() {
+        dock.push_to_focused_leaf(id);
+        return;
+    }
+    let Some((_, tab)) = dock.find_active_focused() else { return };
+    let replaced = std::mem::replace(tab, id);
+    if let Some(v) = state.view3d.remove(&replaced) {
+        state.textures_to_free.extend(v.texture);
+    }
+}
+
 /// Zoom the active view to fit its contents.
 pub fn zoom_fit(state: &mut AppState) {
     let Some(view) = state.active_view else { return };
@@ -527,6 +548,9 @@ fn sync_tabs(dock: &mut DockState<ViewId>, state: &mut AppState) {
             None => dock.push_to_focused_leaf(id),
         }
     }
+    if let Some(id) = state.take_due_reuse() {
+        reuse_tab(dock, state, id);
+    }
     state.active_view = active_tab(dock);
     state.open_tabs = dock.iter_all_tabs().count();
 }
@@ -548,6 +572,28 @@ mod tests {
         // Opening a view again recreates the tree.
         dock.push_to_focused_leaf(ViewId(2));
         assert_eq!(active_tab(&mut dock), Some(ViewId(2)));
+    }
+
+    /// A single click shows the view in the active tab; a double click within
+    /// the delay cancels that and adds a tab.
+    #[test]
+    fn single_click_reuses_the_active_tab() {
+        let mut state = AppState::new(cc_core::Document::new(crate::home::sample_project("casa_simples").unwrap()));
+        let views: Vec<ViewId> = state.project().views.keys().copied().take(3).collect();
+        let mut dock = DockState::new(vec![views[0]]);
+        let first = dock.find_tab(&views[0]).unwrap();
+        dock.set_focused_node_and_surface(first.node_path());
+
+        state.pending_reuse = Some((views[1], std::time::Instant::now()));
+        sync_tabs(&mut dock, &mut state);
+        assert_eq!(dock.iter_all_tabs().map(|(_, t)| *t).collect::<Vec<_>>(), [views[1]]);
+
+        state.reuse_view(views[2]);
+        state.open_view(views[2]);
+        sync_tabs(&mut dock, &mut state);
+        assert_eq!(state.pending_reuse, None);
+        assert_eq!(state.open_tabs, 2);
+        assert_eq!(state.active_view, Some(views[2]));
     }
 
     /// Close Inactive Views keeps the active tab only; Close Other Views on a

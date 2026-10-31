@@ -8,6 +8,10 @@ use cc_engine::Session;
 use cc_views::Drawing2D;
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
+use std::time::{Duration, Instant};
+
+/// How long a single click waits for a second click.
+pub const REUSE_DELAY: Duration = Duration::from_millis(300);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum RibbonTab {
@@ -101,6 +105,9 @@ pub struct AppState {
     pub view3d: HashMap<ViewId, View3DState>,
     /// Views the dock should open (or focus) this frame.
     pub open_requests: Vec<ViewId>,
+    /// Single click waiting to show a view in the active tab, cancelled by a
+    /// double click until the delay ends.
+    pub pending_reuse: Option<(ViewId, Instant)>,
     /// View tabs open (kept by the dock each frame).
     pub open_tabs: usize,
     /// Close every view tab but this one on the next frame.
@@ -189,6 +196,7 @@ impl AppState {
             view2d: HashMap::new(),
             view3d: HashMap::new(),
             open_requests: Vec::new(),
+            pending_reuse: None,
             open_tabs: 0,
             close_others_than: None,
             dialogs: Dialogs::default(),
@@ -297,7 +305,23 @@ impl AppState {
     }
 
     pub fn open_view(&mut self, view: ViewId) {
+        self.pending_reuse = None;
         self.open_requests.push(view);
+    }
+
+    /// Show a view in the active tab once the double click delay has passed.
+    pub fn reuse_view(&mut self, view: ViewId) {
+        self.pending_reuse = Some((view, Instant::now() + REUSE_DELAY));
+    }
+
+    /// The view whose reuse delay has ended, if any.
+    pub fn take_due_reuse(&mut self) -> Option<ViewId> {
+        let (view, due) = self.pending_reuse?;
+        if Instant::now() < due {
+            return None;
+        }
+        self.pending_reuse = None;
+        Some(view)
     }
 
     /// Picking objects with the Select tool opens the Modify tab (drawing
