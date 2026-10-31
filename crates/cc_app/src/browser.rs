@@ -175,6 +175,16 @@ fn category_items(ui: &mut Ui, state: &mut AppState, category: ViewCategory) {
         let active = state.active_view == Some(id);
         let r = tree_row(ui, 1, None, i + 1 == n, category_icon(category), &label, None, active);
 
+        fn start_rename(ui: &mut Ui, state: &mut AppState, id: ViewId) {
+            let name = state.project().view(id).map(|v| v.name.clone()).unwrap_or_default();
+            state.rename = Some((id, name));
+            ui.data_mut(|d| d.remove::<bool>(egui::Id::new(("rename-focused", id.0))));
+        };
+
+        if active && ui.input(|i| i.key_pressed(egui::Key::F2)) {
+            start_rename(ui, state, id);
+        }
+
         let ctrl = ui.input(|i| i.modifiers.command);
         if r.double_clicked() || (r.clicked() && ctrl) {
             state.open_view(id);
@@ -189,9 +199,7 @@ fn category_items(ui: &mut Ui, state: &mut AppState, category: ViewCategory) {
                 ui.close();
             }
             if ui.button(t!("browser-rename")).clicked() {
-                let name = state.project().view(id).map(|v| v.name.clone()).unwrap_or_default();
-                state.rename = Some((id, name));
-                ui.data_mut(|d| d.remove::<bool>(egui::Id::new(("rename-focused", id.0))));
+                start_rename(ui, state, id);
                 ui.close();
             }
             if ui.button(t!("browser-duplicate")).clicked() {
