@@ -348,7 +348,7 @@ fn level_lines(d: &mut Drawing2D, project: &Project, frame: &Frame) {
         d.line(DVec2::new(x1, y), DVec2::new(x1 + 0.15, y + 0.2), LineStyle::Annotation, None);
         d.line(DVec2::new(x1 + 0.15, y + 0.2), DVec2::new(x1 - 0.15, y + 0.2), LineStyle::Annotation, None);
         d.line(DVec2::new(x1 - 0.15, y + 0.2), DVec2::new(x1, y), LineStyle::Annotation, None);
-        d.text(DVec2::new(x1 + 0.3, y + 0.12), &level.name, 2.5);
+        d.text(DVec2::new(x1 + 0.3, y + 0.12), &level.name, 2.0);
         d.text(DVec2::new(x1 + 0.3, y - 0.18), format::elevation(level.elevation), 2.0);
     }
 }

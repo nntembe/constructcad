@@ -511,6 +511,46 @@ impl Command for FloorOpeningAdd {
     }
 }
 
+/// Resize a floor: stretch its boundary and openings to a width (X) and length
+/// (Y), keeping the lowest corner, and set its height offset from the level.
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct FloorResize {
+    /// Floor id.
+    pub id: u64,
+    /// Size along X, meters.
+    pub width: f64,
+    /// Size along Y, meters.
+    pub length: f64,
+    /// Offset of the top face from the level, meters.
+    pub height_offset: f64,
+}
+
+impl Command for FloorResize {
+    const NAME: &'static str = "floor_resize";
+    const KIND: CommandKind = CommandKind::Edit;
+    fn run(self, s: &mut Session) -> Result<Value> {
+        let id = refs::element(s.project(), self.id)?;
+        if s.project().is_pinned(id) {
+            return Err(EngineError::rejected(t!("msg-pinned-skipped", "count" => 1)));
+        }
+        let size = glam::DVec2::new(refs::positive(self.width, "width")?, refs::positive(self.length, "length")?);
+        let height_offset = refs::finite(self.height_offset, "height_offset")?;
+        edit(s, t!("tx-modify"), |e| {
+            let Some(ElementKind::Floor(f)) = e.element_mut(id).map(|x| &mut x.kind) else {
+                return Err(EngineError::invalid("not a floor"));
+            };
+            if f.extent().1.min_element() <= 0.0 {
+                return Err(EngineError::invalid("the floor has no area to resize"));
+            }
+            f.resize(size);
+            f.height_offset = height_offset;
+            Ok(())
+        })?;
+        Ok(created(s, id))
+    }
+}
+
 /// Remove one opening of a floor (by its index in the floor's `openings`).
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]

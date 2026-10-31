@@ -396,6 +396,22 @@ pub struct Floor {
 }
 
 impl Floor {
+    /// Lowest corner and size of the boundary's bounding box.
+    pub fn extent(&self) -> (DVec2, DVec2) {
+        let first = self.boundary.first().copied().unwrap_or_default();
+        let (min, max) = self.boundary.iter().fold((first, first), |(lo, hi), p| (lo.min(*p), hi.max(*p)));
+        (min, max - min)
+    }
+
+    /// Stretch the boundary and openings to `size`, keeping the lowest corner.
+    pub fn resize(&mut self, size: DVec2) {
+        let (min, old) = self.extent();
+        let scale = size / old;
+        let stretch = |p: &mut DVec2| *p = min + (*p - min) * scale;
+        self.boundary.iter_mut().for_each(stretch);
+        self.openings.iter_mut().flatten().for_each(stretch);
+    }
+
     /// A floor over `boundary` with no openings.
     pub fn new(boundary: Vec<DVec2>, height_offset: f64) -> Self {
         Self { boundary, height_offset, openings: Vec::new() }

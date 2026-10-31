@@ -304,11 +304,13 @@ pub fn show(ui: &mut Ui, state: &mut AppState, view_id: ViewId) {
     }
     let editing = !zooming
         && (crate::text_tool::canvas(&resp, state, view_id, &xf, &drawing)
-            || crate::dim_edit::canvas(ui, &resp, &painter, state, view_id, &xf, px_per_mm, &drawing));
+            || crate::dim_edit::canvas(ui, &resp, &painter, state, view_id, &xf, px_per_mm, &drawing)
+            || crate::size_edit::canvas(&resp, state, view_id, &xf, &drawing));
     if !zooming && !editing {
         crate::tools::handle(ui, &resp, &painter, state, &view, &xf, &drawing);
     }
     crate::dim_edit::show(ui, state, view_id);
+    crate::size_edit::show(ui, state, view_id);
     crate::text_tool::show(ui, state, view_id);
     temporary_frame(ui, state, rect, view_id);
     let nav = state.view2d.get(&view_id).map(View2DState::nav).unwrap_or_default();

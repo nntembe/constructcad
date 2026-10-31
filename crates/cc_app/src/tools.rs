@@ -623,14 +623,20 @@ fn snap_with(
     let nearest = |pts: &[DVec2]| {
         pts.iter().map(|p| (*p, p.distance(raw))).filter(|(_, d)| *d <= r).min_by(|a, b| a.1.total_cmp(&b.1))
     };
+    // With Shift, every snap stays on the straight line from the anchor.
+    let ortho_line = anchor.filter(|_| ortho).map(|a| (a, ortho_dir(raw - a)));
+    let held = |p: DVec2, kind: SnapKind| match ortho_line {
+        Some(line) => pin_to_line(line, p, kind),
+        None => Snap::at(p, kind),
+    };
     if let Some((p, _)) = nearest(&ends) {
-        return Snap::at(p, SnapKind::Endpoint);
+        return held(p, SnapKind::Endpoint);
     }
     if let Some((p, _)) = nearest(&cad.centers) {
-        return Snap::at(p, SnapKind::Center);
+        return held(p, SnapKind::Center);
     }
     if let Some((p, _)) = nearest(&mids) {
-        return Snap::at(p, SnapKind::Midpoint);
+        return held(p, SnapKind::Midpoint);
     }
 
     // Guides (origin, unit direction) passing near the pointer.
@@ -667,7 +673,9 @@ fn snap_with(
             }
         }
     }
-    if let Some((s, _)) = best {
+    if ortho_line.is_none()
+        && let Some((s, _)) = best
+    {
         return s;
     }
 
@@ -676,7 +684,7 @@ fn snap_with(
         let v = raw - a;
         let mut dir = v.normalize_or_zero();
         if ortho {
-            dir = if v.x.abs() >= v.y.abs() { DVec2::new(v.x.signum(), 0.0) } else { DVec2::new(0.0, v.y.signum()) };
+            dir = ortho_dir(v);
         } else {
             let ang = v.y.atan2(v.x).to_degrees();
             let snapped = (ang / 15.0).round() * 15.0;
@@ -687,11 +695,12 @@ fn snap_with(
         let len = (v.dot(dir) / step).round() * step;
         let p = a + dir * len;
         // Prefer landing exactly on a wall line when close (T-junctions).
-        if let Some(q) = on_lines(&lines, raw, r) {
+        let on_line = if ortho { ortho_crossing(&lines, a, dir, raw, r) } else { on_lines(&lines, raw, r) };
+        if let Some(q) = on_line {
             return Snap::at(q, SnapKind::Nearest);
         }
         // Or on an arc wall's line.
-        let on_arc = arcs.iter().find_map(|arc| {
+        let on_arc = arcs.iter().filter(|_| !ortho).find_map(|arc| {
             let (u, v) = arc.locate(raw);
             (v.abs() <= r && (0.0..=arc.length()).contains(&u)).then(|| arc.point(u))
         });
@@ -727,6 +736,35 @@ fn on_lines(lines: &[(DVec2, DVec2)], raw: DVec2, r: f64) -> Option<DVec2> {
         .map(|(a, b)| polygon::closest_on_segment(*a, *b, raw).0)
         .map(|q| (q, q.distance(raw)))
         .filter(|(_, d)| *d <= r)
+        .min_by(|a, b| a.1.total_cmp(&b.1))
+        .map(|(q, _)| q)
+}
+
+/// The horizontal or vertical direction closest to `v`.
+fn ortho_dir(v: DVec2) -> DVec2 {
+    if v.x.abs() >= v.y.abs() { DVec2::new(v.x.signum(), 0.0) } else { DVec2::new(0.0, v.y.signum()) }
+}
+
+/// Move a snap point onto `line` (origin, unit direction); a point moved shows
+/// a guide from where it came.
+fn pin_to_line((a, dir): (DVec2, DVec2), p: DVec2, kind: SnapKind) -> Snap {
+    let q = a + dir * (p - a).dot(dir);
+    if q.distance(p) < 1e-9 {
+        return Snap::at(p, kind);
+    }
+    Snap { point: q, kind: SnapKind::Alignment, guides: [Some((p, q)), None] }
+}
+
+/// Where the line from `a` along `dir` crosses a segment of `lines` near `raw`.
+fn ortho_crossing(lines: &[(DVec2, DVec2)], a: DVec2, dir: DVec2, raw: DVec2, r: f64) -> Option<DVec2> {
+    lines
+        .iter()
+        .filter_map(|(s, e)| {
+            let q = a + dir * polygon::line_intersect(a, dir, *s, *e - *s)?;
+            (polygon::closest_on_segment(*s, *e, q).0.distance(q) < 1e-9).then_some(q)
+        })
+        .map(|q| (q, q.distance(raw)))
+        .filter(|(_, d)| *d <= r * 1.5)
         .min_by(|a, b| a.1.total_cmp(&b.1))
         .map(|(q, _)| q)
 }
@@ -3206,6 +3244,33 @@ mod tests {
         assert_eq!(s.kind, SnapKind::Intersection);
         assert!(s.point.distance(DVec2::new(5.0, 0.0)) < 1e-12, "{}", s.point);
         assert!(s.guides.iter().all(Option::is_some));
+    }
+
+    /// With Shift, a corner near the pointer does not pull the end off the line.
+    #[test]
+    fn ortho_keeps_endpoint_snaps_on_the_line() {
+        let (p, level) = empty();
+        let corner = DVec2::new(4.0, 0.08);
+        let raw = DVec2::new(4.02, 0.05);
+        let geom = ModelGeometry::default();
+        let s = snap(&p, &geom, Some(level), raw, Some(DVec2::ZERO), &[corner], &[], SCALE, true);
+        assert_eq!(s.kind, SnapKind::Alignment);
+        assert!(s.point.distance(DVec2::new(4.0, 0.0)) < 1e-12, "{}", s.point);
+        // Without Shift the corner wins.
+        let s = snap(&p, &geom, Some(level), raw, Some(DVec2::ZERO), &[corner], &[], SCALE, false);
+        assert_eq!((s.kind, s.point), (SnapKind::Endpoint, corner));
+    }
+
+    /// With Shift, a slanted edge is met where the line crosses it, not at the
+    /// point of the edge closest to the pointer.
+    #[test]
+    fn ortho_meets_edges_on_the_line() {
+        let edge = [(DVec2::new(3.0, -1.0), DVec2::new(5.0, 1.0))];
+        let raw = DVec2::new(4.05, 0.06);
+        let q = ortho_crossing(&edge, DVec2::ZERO, DVec2::X, raw, 0.1).unwrap();
+        assert!(q.distance(DVec2::new(4.0, 0.0)) < 1e-12, "{q}");
+        // Past the end of the edge there is nothing to meet.
+        assert_eq!(ortho_crossing(&edge, DVec2::new(0.0, 2.0), DVec2::X, DVec2::new(6.0, 2.0), 0.1), None);
     }
 
     #[test]

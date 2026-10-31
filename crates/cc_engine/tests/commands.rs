@@ -1967,6 +1967,22 @@ fn roofs_over_any_footprint() {
     assert_eq!(fails(&mut s, "roof_create", overlapping), ErrorCode::InvalidArguments);
 }
 
+#[test]
+fn floor_resize_stretches_the_outline_and_openings() {
+    let mut s = Session::default();
+    let shaft = json!([[2, 2], [4, 2], [4, 3], [2, 3]]);
+    let boundary = json!([[1, 1], [11, 1], [11, 7], [1, 7]]);
+    let floor = run(&mut s, "floor_create", json!({"boundary": boundary, "openings": [shaft]}));
+    let args = json!({"id": floor["id"], "width": 5.0, "length": 12.0, "height_offset": -0.1});
+    run(&mut s, "floor_resize", args);
+    let params = run(&mut s, "element_get", json!({"id": floor["id"]}))["params"].clone();
+    assert_eq!(params["boundary"], json!([[1.0, 1.0], [6.0, 1.0], [6.0, 13.0], [1.0, 13.0]]));
+    assert_eq!(params["openings"][0][2], json!([2.5, 5.0]));
+    assert_eq!(params["height_offset"], -0.1);
+    let bad = json!({"id": floor["id"], "width": 0.0, "length": 1.0, "height_offset": 0.0});
+    assert!(s.execute("floor_resize", bad).is_err());
+}
+
 /// Floors with openings (shafts, stairwells): created with them, added and
 /// removed one at a time; the area and volume leave them out.
 #[test]
