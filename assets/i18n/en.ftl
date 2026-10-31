@@ -33,6 +33,7 @@ tab-elevation = Elevation: { $name }
 tab-section = Section: { $name }
 
 # Ribbon
+ribbon-home = Home
 ribbon-file = File
 ribbon-architecture = Architecture
 ribbon-modify = Modify

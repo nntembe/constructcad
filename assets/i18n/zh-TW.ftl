@@ -33,6 +33,7 @@ tab-elevation = 立面圖：{ $name }
 tab-section = 剖面圖：{ $name }
 
 # 功能區
+ribbon-home = 首頁
 ribbon-file = 檔案
 ribbon-architecture = 建築
 ribbon-modify = 修改

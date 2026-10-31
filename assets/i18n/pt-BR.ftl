@@ -33,6 +33,7 @@ tab-elevation = Elevação: { $name }
 tab-section = Corte: { $name }
 
 # Faixa de opções
+ribbon-home = Início
 ribbon-file = Arquivo
 ribbon-architecture = Arquitetura
 ribbon-modify = Modificar

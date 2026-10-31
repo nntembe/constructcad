@@ -33,6 +33,7 @@ tab-elevation = Alzado: { $name }
 tab-section = Sección: { $name }
 
 # Cinta de opciones
+ribbon-home = Inicio
 ribbon-file = Archivo
 ribbon-architecture = Arquitectura
 ribbon-modify = Modificar

@@ -33,6 +33,7 @@ tab-elevation = Élévation : { $name }
 tab-section = Coupe : { $name }
 
 # Ruban
+ribbon-home = Accueil
 ribbon-file = Fichier
 ribbon-architecture = Architecture
 ribbon-modify = Modifier

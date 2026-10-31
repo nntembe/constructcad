@@ -33,6 +33,7 @@ tab-elevation = 立面：{ $name }
 tab-section = 剖面：{ $name }
 
 # Ribbon
+ribbon-home = 主页
 ribbon-file = 文件
 ribbon-architecture = 建筑
 ribbon-modify = 修改

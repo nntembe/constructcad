@@ -33,6 +33,7 @@ tab-elevation = Фасад: { $name }
 tab-section = Розріз: { $name }
 
 # Стрічка
+ribbon-home = Головна
 ribbon-file = Файл
 ribbon-architecture = Архітектура
 ribbon-modify = Змінити

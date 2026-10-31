@@ -33,6 +33,7 @@ tab-elevation = Prospetto: { $name }
 tab-section = Sezione: { $name }
 
 # Barra multifunzione
+ribbon-home = Home
 ribbon-file = File
 ribbon-architecture = Architettura
 ribbon-modify = Modifica

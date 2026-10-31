@@ -33,6 +33,7 @@ tab-elevation = Elewacja: { $name }
 tab-section = Przekrój: { $name }
 
 # Wstążka
+ribbon-home = Start
 ribbon-file = Plik
 ribbon-architecture = Architektura
 ribbon-modify = Zmień

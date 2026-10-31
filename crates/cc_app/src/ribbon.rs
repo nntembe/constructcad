@@ -357,39 +357,40 @@ pub fn ribbon(ui: &mut Ui, state: &mut AppState) {
     // Measured first: rows wider than the window grow the Ui's rectangle.
     let full_width = ui.available_width();
     // Quick access toolbar at the top left, where desktop applications keep it.
-    ui.horizontal(|ui| {
-        ui.spacing_mut().item_spacing.x = 1.0;
-        ui.add_space(2.0);
-        let (mark, _) = ui.allocate_exact_size(vec2(20.0, 20.0), Sense::hover());
-        if let Some(logo) = theme::logo(ui.ctx()) {
-            let uv = egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0));
-            ui.painter().image(logo.id(), mark, uv, egui::Color32::WHITE);
-        }
-        ui.add_space(8.0);
-        let divider = |ui: &mut Ui| {
-            let (div, _) = ui.allocate_exact_size(vec2(9.0, 18.0), Sense::hover());
-            ui.painter().vline(div.center().x, div.y_range(), Stroke::new(1.0, PALETTE.border));
-        };
-        for command in [UiCommand::Home, UiCommand::New, UiCommand::Open, UiCommand::Save] {
-            command_icon(ui, state, command);
-        }
-        divider(ui);
-        command_icon(ui, state, UiCommand::Undo);
-        command_icon(ui, state, UiCommand::Redo);
-        // Frequent commands that already live in the ribbon.
-        divider(ui);
-        for command in [
-            UiCommand::ExportPdf,
-            UiCommand::Dimension(DimensionMode::Aligned),
-            UiCommand::Default3D,
-            UiCommand::Section,
-            UiCommand::CloseInactiveViews,
-        ] {
-            command_icon(ui, state, command);
-        }
-    });
+    // ui.horizontal(|ui| {
+    //     ui.spacing_mut().item_spacing.x = 1.0;
+    //     ui.add_space(2.0);
+    //     let (mark, _) = ui.allocate_exact_size(vec2(20.0, 20.0), Sense::hover());
+    //     if let Some(logo) = theme::logo(ui.ctx()) {
+    //         let uv = egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0));
+    //         ui.painter().image(logo.id(), mark, uv, egui::Color32::WHITE);
+    //     }
+    //     ui.add_space(8.0);
+    //     let divider = |ui: &mut Ui| {
+    //         let (div, _) = ui.allocate_exact_size(vec2(9.0, 18.0), Sense::hover());
+    //         ui.painter().vline(div.center().x, div.y_range(), Stroke::new(1.0, PALETTE.border));
+    //     };
+    //     for command in [UiCommand::Home, UiCommand::New, UiCommand::Open, UiCommand::Save] {
+    //         command_icon(ui, state, command);
+    //     }
+    //     divider(ui);
+    //     command_icon(ui, state, UiCommand::Undo);
+    //     command_icon(ui, state, UiCommand::Redo);
+    //     // Frequent commands that already live in the ribbon.
+    //     divider(ui);
+    //     for command in [
+    //         UiCommand::ExportPdf,
+    //         UiCommand::Dimension(DimensionMode::Aligned),
+    //         UiCommand::Default3D,
+    //         UiCommand::Section,
+    //         UiCommand::CloseInactiveViews,
+    //     ] {
+    //         command_icon(ui, state, command);
+    //     }
+    // });
     // Ribbon tab titles, all as wide as the widest (measured bold, as when active).
     let tabs = [
+        (RibbonTab::Home, t!("ribbon-home")),
         (RibbonTab::File, t!("ribbon-file")),
         (RibbonTab::Architecture, t!("ribbon-architecture")),
         (RibbonTab::Structure, t!("ribbon-structure")),
@@ -517,6 +518,7 @@ fn tab_row(ui: &mut Ui, state: &mut AppState, available: f32) {
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing.x = 0.0;
                 match state.ribbon_tab {
+                    RibbonTab::Home => file_tab(ui, state),
                     RibbonTab::File => file_tab(ui, state),
                     RibbonTab::Architecture => architecture_tab(ui, state),
                     RibbonTab::Structure => structure_tab(ui, state),

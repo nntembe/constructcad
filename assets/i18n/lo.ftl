@@ -33,6 +33,7 @@ tab-elevation = ຮູບດ້ານ: { $name }
 tab-section = ຮູບຕັດ: { $name }
 
 # Ribbon
+ribbon-home = ໜ້າຫຼັກ
 ribbon-file = ໄຟລ໌
 ribbon-architecture = ສະຖາປັດຕະຍະກຳ
 ribbon-modify = ດັດແກ້

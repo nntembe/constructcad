@@ -11,6 +11,7 @@ use std::rc::Rc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum RibbonTab {
+    Home,
     File,
     #[default]
     Architecture,

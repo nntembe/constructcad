@@ -33,6 +33,7 @@ tab-elevation = Ansicht: { $name }
 tab-section = Schnitt: { $name }
 
 # Menüband
+ribbon-home = Start
 ribbon-file = Datei
 ribbon-architecture = Architektur
 ribbon-modify = Ändern
