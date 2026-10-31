@@ -356,6 +356,7 @@ fn command_icon(ui: &mut Ui, state: &mut AppState, command: UiCommand) {
 pub fn ribbon(ui: &mut Ui, state: &mut AppState) {
     // Measured first: rows wider than the window grow the Ui's rectangle.
     let full_width = ui.available_width();
+    /*
     // Quick access toolbar at the top left, where desktop applications keep it.
     // ui.horizontal(|ui| {
     //     ui.spacing_mut().item_spacing.x = 1.0;
@@ -387,7 +388,8 @@ pub fn ribbon(ui: &mut Ui, state: &mut AppState) {
     //     ] {
     //         command_icon(ui, state, command);
     //     }
-    // });
+    // });*/
+
     // Ribbon tab titles, all as wide as the widest (measured bold, as when active).
     let tabs = [
         (RibbonTab::Home, t!("ribbon-home")),
@@ -413,14 +415,11 @@ pub fn ribbon(ui: &mut Ui, state: &mut AppState) {
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = 0.0;
 
-        let home_text = t!("ribbon-home");
-
         for (tab, label) in tabs {
             let active = state.ribbon_tab == tab && (!collapsed || state.ribbon_peek);
             let r = tab_title(ui, &label, active, width);
 
-
-            if r.clicked() && label.contains(home_text.as_str()) {
+            if r.clicked() && tab == RibbonTab::Home {
                 commands::run(state, &ui.ctx().clone(), UiCommand::Home);
                 continue;
             }

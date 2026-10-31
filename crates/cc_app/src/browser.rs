@@ -162,6 +162,7 @@ fn category_items(ui: &mut Ui, state: &mut AppState, category: ViewCategory) {
                     done.then(|| !ui.input(|i| i.key_pressed(egui::Key::Escape)))
                 })
                 .inner;
+
             if let Some(accept) = finished
                 && let Some((_, text)) = state.rename.take()
                 && accept
@@ -170,11 +171,14 @@ fn category_items(ui: &mut Ui, state: &mut AppState, category: ViewCategory) {
             }
             continue;
         }
+
         let active = state.active_view == Some(id);
         let r = tree_row(ui, 1, None, i + 1 == n, category_icon(category), &label, None, active);
+
         if r.clicked() {
             state.open_view(id);
         }
+
         r.context_menu(|ui| {
             if ui.button(t!("browser-open")).clicked() {
                 state.open_view(id);
