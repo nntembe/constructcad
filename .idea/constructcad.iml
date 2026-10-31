@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="EMPTY_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_app/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_app/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_cad/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_cli/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_core/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_engine/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_engine/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_geom/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_ifc/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_ifc/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_ifc/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_render/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cc_views/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
