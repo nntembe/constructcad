@@ -399,6 +399,7 @@ pub fn ribbon(ui: &mut Ui, state: &mut AppState) {
         (RibbonTab::Annotate, t!("ribbon-annotate")),
         (RibbonTab::View, t!("ribbon-view")),
         (RibbonTab::Manage, t!("ribbon-manage")),
+        (RibbonTab::Settings, t!("ribbon-settings"))
     ];
     let width = tabs
         .iter()
@@ -408,22 +409,39 @@ pub fn ribbon(ui: &mut Ui, state: &mut AppState) {
     // Narrow windows squeeze the titles, keeping room for the collapse button.
     let width = width.min(((full_width - 40.0) / tabs.len() as f32).max(width - 24.0));
     let collapsed = state.ribbon_collapsed;
+
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = 0.0;
+
+        let home_text = t!("ribbon-home");
+
         for (tab, label) in tabs {
             let active = state.ribbon_tab == tab && (!collapsed || state.ribbon_peek);
             let r = tab_title(ui, &label, active, width);
+
+
+            if r.clicked() && label.contains(home_text.as_str()) {
+                commands::run(state, &ui.ctx().clone(), UiCommand::Home);
+                continue;
+            }
+
             // A double click collapses or expands; a click on a collapsed
             // ribbon shows that tab's panel over the views, or hides it again.
             if r.double_clicked() {
                 state.ribbon_collapsed = !state.ribbon_collapsed;
                 state.ribbon_peek = false;
-            } else if r.clicked() {
-                if collapsed {
-                    state.ribbon_peek = !(state.ribbon_peek && state.ribbon_tab == tab);
-                }
-                state.ribbon_tab = tab;
+                continue;
             }
+
+            if !r.clicked() {
+                continue;
+            }
+
+            if collapsed {
+                state.ribbon_peek = !(state.ribbon_peek && state.ribbon_tab == tab);
+            }
+
+            state.ribbon_tab = tab;
         }
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
             command_icon(ui, state, UiCommand::CommandPalette);
@@ -527,6 +545,7 @@ fn tab_row(ui: &mut Ui, state: &mut AppState, available: f32) {
                     RibbonTab::Annotate => annotate_tab(ui, state),
                     RibbonTab::View => view_tab(ui, state),
                     RibbonTab::Manage => manage_tab(ui, state),
+                    RibbonTab::Settings => settings_tab(ui, state),
                 }
             });
         });
@@ -576,8 +595,6 @@ fn file_tab(ui: &mut Ui, state: &mut AppState) {
     group(ui, t!("group-project"), |ui| command_buttons(ui, state, &[New, Open, Save, SaveAs, CloseProject]));
     group(ui, t!("group-import"), |ui| command_buttons(ui, state, &[ImportIfc, UiCommand::ImportCad]));
     group(ui, t!("group-export"), |ui| command_buttons(ui, state, &[ExportIfc, ExportPdf, ExportSvg, ExportImage]));
-    group(ui, t!("group-settings"), |ui| command_button(ui, state, UiCommand::Preferences));
-    group(ui, t!("group-help"), |ui| command_buttons(ui, state, &[UiCommand::About, UiCommand::CheckUpdates]));
 }
 
 fn place(category: Category) -> UiCommand {
@@ -1198,6 +1215,12 @@ pub fn status_bar(ui: &mut Ui, state: &mut AppState) {
         });
     });
 }
+
+
+fn settings_tab(ui: &mut Ui, state: &mut AppState) {
+    group(ui, t!("group-help"), |ui| command_buttons(ui, state, &[UiCommand::Preferences, UiCommand::About, UiCommand::CheckUpdates]));
+}
+
 
 #[cfg(test)]
 mod tests {

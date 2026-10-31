@@ -224,6 +224,7 @@ msg-macro-failed = Das Makro hielt bei Schritt { $step } an: { $error }
 group-export = Export
 group-import = Import
 group-settings = Einstellungen
+ribbon-settings = Einstellungen
 group-help = Hilfe
 group-build = Bauen
 group-horizontal = Decken & Dächer

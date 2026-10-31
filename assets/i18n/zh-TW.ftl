@@ -224,6 +224,7 @@ msg-macro-failed = 巨集在第 { $step } 個步驟停止：{ $error }
 group-export = 導出
 group-import = 導入
 group-settings = 設定
+ribbon-settings = 設定
 group-help = 說明
 group-build = 建置
 group-horizontal = 樓板與屋頂

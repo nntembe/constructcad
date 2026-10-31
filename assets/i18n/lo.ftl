@@ -216,6 +216,7 @@ msg-macro-failed = ມາກໂຄຣຢຸດເຮັດວຽກຢູ່ຂ�
 group-export = ສົ່ງອອກ
 group-import = ນຳເຂົ້າ
 group-settings = ການຕັ້ງຄ່າ
+ribbon-settings = ການຕັ້ງຄ່າ
 group-help = ຊ່ວຍເຫຼືອ
 group-build = ກໍ່ສ້າງ
 group-horizontal = ພື້ນ ແລະ ຫຼັງຄາ

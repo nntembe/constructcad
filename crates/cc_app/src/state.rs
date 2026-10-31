@@ -22,6 +22,7 @@ pub enum RibbonTab {
     Annotate,
     View,
     Manage,
+    Settings,
 }
 
 /// An action that discards unsaved changes, waiting for confirmation.

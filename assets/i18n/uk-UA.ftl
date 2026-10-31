@@ -224,6 +224,7 @@ msg-macro-failed = Виконання макросу перервано на к�
 group-export = Експорт
 group-import = Імпорт
 group-settings = Налаштування
+ribbon-settings = Налаштування
 group-help = Довідка
 group-build = Будівництво
 group-horizontal = Перекриття та дахи
