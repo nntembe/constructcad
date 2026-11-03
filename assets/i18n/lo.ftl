@@ -147,6 +147,7 @@ category-room = ຫ້ອງ
 category-grid = ເສັ້ນຕາໜ່າງ
 category-dimension = ເສັ້ນວັດແທກ
 category-text = ຂໍ້ຄວາມ
+category-section-mark = ເຄື່ອງໝາຍຕັດ
 tool-text = ຂໍ້ຄວາມ
 tool-add-leader = ເພີ່ມເສັ້ນຊີ້
 group-text = ຂໍ້ຄວາມ

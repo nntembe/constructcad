@@ -155,6 +155,7 @@ category-room = Pièces
 category-grid = Quadrillages
 category-dimension = Cotes
 category-text = Texte
+category-section-mark = Repères de coupe
 tool-text = Texte
 tool-add-leader = Ajouter une ligne de repère
 group-text = Texte

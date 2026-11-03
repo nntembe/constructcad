@@ -155,6 +155,7 @@ category-room = Locali
 category-grid = Griglie
 category-dimension = Quote
 category-text = Testo
+category-section-mark = Segni di sezione
 tool-text = Testo
 tool-add-leader = Aggiungi linea di richiamo
 group-text = Testo

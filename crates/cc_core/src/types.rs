@@ -30,10 +30,12 @@ pub enum Category {
     CadImport,
     /// Conceptual masses (massing studies).
     Mass,
+    /// Marks of section views in plans (no elements; only view graphics use it).
+    SectionMark,
 }
 
 impl Category {
-    pub const ALL: [Category; 22] = [
+    pub const ALL: [Category; 23] = [
         Category::Wall,
         Category::Door,
         Category::Window,
@@ -56,6 +58,7 @@ impl Category {
         Category::Text,
         Category::CadImport,
         Category::Mass,
+        Category::SectionMark,
     ];
 
     /// Categories with physical elements (shown in legends and 3D).
@@ -129,6 +132,7 @@ impl Category {
             Category::Conduit => "category-conduit",
             Category::CadImport => "category-cad-import",
             Category::Mass => "category-mass",
+            Category::SectionMark => "category-section-mark",
         }
     }
 

@@ -155,6 +155,7 @@ category-room = Ambientes
 category-grid = Eixos
 category-dimension = Cotas
 category-text = Texto
+category-section-mark = Marcas de corte
 tool-text = Texto
 tool-add-leader = Adicionar chamada
 group-text = Texto

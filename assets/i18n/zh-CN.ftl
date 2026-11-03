@@ -155,6 +155,7 @@ category-room = 房间
 category-grid = 轴网
 category-dimension = 尺寸标注
 category-text = 文字
+category-section-mark = 剖面标记
 tool-text = 文字
 tool-add-leader = 添加引线
 group-text = 文字

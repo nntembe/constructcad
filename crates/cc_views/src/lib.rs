@@ -72,6 +72,9 @@ pub fn generate_temporary(
                 _ => (false, false, None),
             };
             let mut d = plan_of(project, geom, *level, *cut_height, ceiling, structural, view.scale);
+            if !ceiling && view.graphics.category(cc_core::Category::SectionMark).visible {
+                plan::section_marks(&mut d, project);
+            }
             joins::merge(project, &mut d);
             if let Some(discipline) = services {
                 // The architecture stays in the background of a services plan.
@@ -150,6 +153,26 @@ mod tests {
         let project = cc_core::from_ron(include_str!("../../../examples/casa_simples.ccad")).unwrap();
         let geom = ModelGeometry::build(&project);
         (project, geom)
+    }
+
+    /// A plan's graphics hide the section marks, and only in that plan.
+    #[test]
+    fn section_marks_follow_the_view_graphics() {
+        let (mut project, geom) = sample();
+        let plan = project.views_of(ViewCategory::FloorPlan).next().unwrap().clone();
+        let mut hidden = plan.clone();
+        hidden
+            .graphics
+            .set_category(Category::SectionMark, cc_core::CategoryGraphics { visible: false, ..Default::default() });
+        let without_marks = generate(&project, &geom, &hidden).unwrap().prims.len();
+
+        let mut section = plan.clone();
+        section.id = cc_core::ViewId(plan.id.0 + 10_000);
+        section.kind = ViewKind::Section { start: DVec2::ZERO, end: DVec2::new(5.0, 0.0), depth: 4.0 };
+        project.views.insert(section.id, section);
+        let shown = generate(&project, &geom, &plan).unwrap().prims.len();
+        assert!(shown > without_marks, "the plan draws the marks");
+        assert_eq!(generate(&project, &geom, &hidden).unwrap().prims.len(), without_marks);
     }
 
     #[test]

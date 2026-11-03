@@ -1170,6 +1170,7 @@ fn place_label(category: Category) -> String {
         Category::Component => t!("tool-component"),
         Category::CadImport => t!("action-import-cad"),
         Category::Mass => t!("tool-mass"),
+        Category::SectionMark => t!("category-section-mark"),
     }
 }
 
@@ -1197,6 +1198,7 @@ fn place_description(category: Category) -> String {
         Category::Component => t!("cmd-desc-component"),
         Category::CadImport => t!("cmd-desc-import-cad"),
         Category::Mass => t!("cmd-desc-mass"),
+        Category::SectionMark => t!("category-section-mark"),
     }
 }
 

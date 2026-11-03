@@ -126,11 +126,6 @@ pub fn plan_of(
     }
 
     if !ceiling {
-        for v in project.views.values() {
-            if let ViewKind::Section { start, end, depth } = v.kind {
-                section_mark(&mut d, start, end, depth, &v.name);
-            }
-        }
         if let Some((lo, hi)) = geom.bounds() {
             // Markers stay outside the grid lines too, which usually extend past the model.
             let grid_ends = project.elements.values().filter_map(|e| match &e.kind {
@@ -613,6 +608,15 @@ fn ceiling_grid(d: &mut Drawing2D, boundary: &[DVec2], id: cc_core::ElementId) {
                 d.line(origin + dir * a, origin + dir * b, LineStyle::Thin, Some(id));
             }
             t += CEILING_GRID;
+        }
+    }
+}
+
+/// The marks of the project's section views.
+pub fn section_marks(d: &mut Drawing2D, project: &Project) {
+    for v in project.views.values() {
+        if let ViewKind::Section { start, end, depth } = v.kind {
+            section_mark(d, start, end, depth, &v.name);
         }
     }
 }

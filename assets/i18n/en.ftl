@@ -155,6 +155,7 @@ category-room = Rooms
 category-grid = Grids
 category-dimension = Dimensions
 category-text = Text
+category-section-mark = Section Marks
 tool-text = Text
 tool-add-leader = Add Leader
 group-text = Text

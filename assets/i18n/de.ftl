@@ -155,6 +155,7 @@ category-room = Räume
 category-grid = Raster
 category-dimension = Bemaßungen
 category-text = Text
+category-section-mark = Schnittmarken
 tool-text = Text
 tool-add-leader = Führungslinie hinzufügen
 group-text = Text

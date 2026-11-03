@@ -155,6 +155,7 @@ category-room = Приміщення
 category-grid = Координатні осі
 category-dimension = Розміри
 category-text = Текст
+category-section-mark = Позначки розрізу
 tool-text = Текст
 tool-add-leader = Додати виноску
 group-text = Текст

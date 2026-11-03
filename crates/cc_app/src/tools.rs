@@ -271,8 +271,8 @@ impl Tool {
             Category::Pipe => Tool::Pipe { type_id },
             Category::Conduit => Tool::Conduit { type_id },
             Category::Text => Tool::Text { type_id },
-            // Imported, not drawn.
-            Category::CadImport => return None,
+            // Imported, or drawn from the views: no tool places them.
+            Category::CadImport | Category::SectionMark => return None,
         })
     }
 }
@@ -555,6 +555,7 @@ fn snap_with(
     let mut mids = Vec::new();
     let mut lines = Vec::new();
     let mut arcs: Vec<cc_core::arc::Arc> = Vec::new();
+    let mut centers = cad.centers.clone();
     ends.extend_from_slice(&cad.ends);
     mids.extend_from_slice(&cad.mids);
     lines.extend_from_slice(&cad.lines);
@@ -564,7 +565,10 @@ fn snap_with(
             ends.extend([w.start, w.end]);
             mids.push(w.point_at(w.length() * 0.5));
             match w.arc() {
-                Some(a) => arcs.push(a),
+                Some(a) => {
+                    centers.push(a.center);
+                    arcs.push(a);
+                }
                 None => lines.push((w.start, w.end)),
             }
         } else if let Some(s) = e.as_segment() {
@@ -582,9 +586,16 @@ fn snap_with(
         } else if let Some(s) = e.sketch() {
             ends.extend_from_slice(s);
             lines.extend(closed_edges(s));
+            mids.extend(closed_edges(s).map(|(a, b)| (a + b) * 0.5));
+            centers.extend(box_center(s));
         } else if let ElementKind::Railing(r) = &e.kind {
             ends.extend_from_slice(&r.path);
             lines.extend(r.path.windows(2).map(|w| (w[0], w[1])));
+        }
+        match &e.kind {
+            ElementKind::Column(c) => centers.push(c.position),
+            ElementKind::Component(c) => centers.push(c.position),
+            _ => {}
         }
         // Outlines as the plan draws them: corners are endpoints, edges lines.
         let outlines: Vec<Vec<DVec2>> = match (&e.kind, project.element_type(e.type_id).map(|t| &t.data)) {
@@ -632,7 +643,7 @@ fn snap_with(
     if let Some((p, _)) = nearest(&ends) {
         return held(p, SnapKind::Endpoint);
     }
-    if let Some((p, _)) = nearest(&cad.centers) {
+    if let Some((p, _)) = nearest(&centers) {
         return held(p, SnapKind::Center);
     }
     if let Some((p, _)) = nearest(&mids) {
@@ -738,6 +749,24 @@ fn on_lines(lines: &[(DVec2, DVec2)], raw: DVec2, r: f64) -> Option<DVec2> {
         .filter(|(_, d)| *d <= r)
         .min_by(|a, b| a.1.total_cmp(&b.1))
         .map(|(q, _)| q)
+}
+
+/// Center of the bounding box of `pts`.
+fn box_center(pts: &[DVec2]) -> Option<DVec2> {
+    let first = *pts.first()?;
+    let (lo, hi) = pts.iter().fold((first, first), |(lo, hi), p| (lo.min(*p), hi.max(*p)));
+    Some((lo + hi) * 0.5)
+}
+
+/// With the Select tool, mark the model point under the pointer.
+fn select_hover_snap(resp: &Response, painter: &Painter, state: &mut AppState, level: Option<LevelId>, xf: &Xf) {
+    let Some(raw) = resp.hover_pos().filter(|_| !resp.dragged()).map(|p| xf.to_world(p)) else { return };
+    let cad = cad_snap(state, raw, SNAP_PX / xf.scale * 1.5);
+    let (project, geom) = (&state.session.doc.project, state.session.geom());
+    let s = snap_with(project, geom, level, raw, None, &[], &[], xf.scale, false, &cad);
+    if matches!(s.kind, SnapKind::Endpoint | SnapKind::Midpoint | SnapKind::Center) {
+        draw_snap(painter, xf, s);
+    }
 }
 
 /// The horizontal or vertical direction closest to `v`.
@@ -1005,7 +1034,12 @@ pub fn handle(
     let is_plan = matches!(view.kind, ViewKind::FloorPlan { .. } | ViewKind::CeilingPlan { .. });
     let tool = state.tool.clone();
     match (&tool, view.level()) {
-        (Tool::Select, _) => select(ui, resp, painter, state, is_plan, xf, drawing),
+        (Tool::Select, level) => {
+            select(ui, resp, painter, state, is_plan, xf, drawing);
+            if level.is_some() {
+                select_hover_snap(resp, painter, state, level, xf);
+            }
+        }
         // Matching types works in any 2D view.
         (Tool::MatchType, _) => crate::clipboard::match_type_tool(resp, painter, state, xf, drawing),
         // Demolishing works in plans, elevations and sections.
@@ -3244,6 +3278,29 @@ mod tests {
         assert_eq!(s.kind, SnapKind::Intersection);
         assert!(s.point.distance(DVec2::new(5.0, 0.0)) < 1e-12, "{}", s.point);
         assert!(s.guides.iter().all(Option::is_some));
+    }
+
+    /// Slabs snap at their center and at the middle of their edges.
+    #[test]
+    fn slabs_snap_at_center_and_edge_midpoints() {
+        let state = AppState::new(cc_core::Document::new(crate::home::sample_project("casa_simples").unwrap()));
+        let (project, geom) = (&state.session.doc.project, state.session.geom());
+        let el = project.elements.values().find(|e| matches!(e.kind, ElementKind::Floor(_))).unwrap();
+        let outline = el.sketch().unwrap();
+        let center = box_center(outline).unwrap();
+        let near = DVec2::new(0.01, 0.01);
+        let s = snap(project, geom, Some(el.level), center + near, None, &[], &[], SCALE, false);
+        assert_eq!((s.kind, s.point), (SnapKind::Center, center));
+        let middle = (outline[0] + outline[1]) * 0.5;
+        let s = snap(project, geom, Some(el.level), middle + near, None, &[], &[], SCALE, false);
+        assert!(matches!(s.kind, SnapKind::Midpoint | SnapKind::Endpoint), "{:?}", s.kind);
+        assert!(s.point.distance(middle) < 0.1, "{}", s.point);
+    }
+
+    #[test]
+    fn box_center_handles_empty_outlines() {
+        assert_eq!(box_center(&[]), None);
+        assert_eq!(box_center(&[DVec2::ZERO, DVec2::new(4.0, 2.0)]), Some(DVec2::new(2.0, 1.0)));
     }
 
     /// With Shift, a corner near the pointer does not pull the end off the line.

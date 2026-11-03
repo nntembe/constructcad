@@ -155,6 +155,7 @@ category-room = Pomieszczenia
 category-grid = Osie
 category-dimension = Wymiary
 category-text = Tekst
+category-section-mark = Znaczniki przekroju
 tool-text = Tekst
 tool-add-leader = Dodaj odnośnik
 group-text = Tekst

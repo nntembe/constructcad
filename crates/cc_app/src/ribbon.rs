@@ -42,6 +42,7 @@ pub fn category_icon(category: Category) -> Icon {
         Category::Text => Icon::Text,
         Category::CadImport => Icon::CadImport,
         Category::Mass => Icon::Mass,
+        Category::SectionMark => Icon::Section,
     }
 }
 

@@ -155,6 +155,7 @@ category-room = Habitaciones
 category-grid = Ejes
 category-dimension = Cotas
 category-text = Texto
+category-section-mark = Marcas de sección
 tool-text = Texto
 tool-add-leader = Añadir directriz
 group-text = Texto
